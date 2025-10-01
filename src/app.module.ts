@@ -1,26 +1,27 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { DevicesModule } from './devices/devices.module';
+import { AlarmsModule } from './alarms/alarms.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
+      useFactory: (cfg: ConfigService) => ({
         type: 'mysql',
-        host: config.get<string>('DB_HOST', 'localhost'),
-        port: config.get<number>('DB_PORT', 3310),
-        username: config.get<string>('DB_USER', 'root'),
-        password: config.get<string>('DB_PASS', 'root'),
-        database: config.get<string>('DB_NAME', 'lampe_aube'),
+        host: cfg.get('DB_HOST', 'localhost'),
+        port: cfg.get<number>('DB_PORT', 3310),
+        username: cfg.get('DB_USER', 'root'),
+        password: cfg.get('DB_PASS', ''),
+        database: cfg.get('DB_NAME', 'lampe_aube'),
         autoLoadEntities: true,
-        synchronize: true, // ⚠️ uniquement en dev
+        synchronize: true, // DEV seulement
       }),
     }),
+    DevicesModule,
+    AlarmsModule,
   ],
 })
 export class AppModule {}
