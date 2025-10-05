@@ -3,6 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DevicesModule } from './devices/devices.module';
 import { AlarmsModule } from './alarms/alarms.module';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { AlarmsModule } from './alarms/alarms.module';
         synchronize: true, // DEV seulement
       }),
     }),
+    UsersModule,
+    AuthModule,
     DevicesModule,
     AlarmsModule,
   ],

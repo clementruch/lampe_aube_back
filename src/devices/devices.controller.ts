@@ -1,49 +1,29 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { DevicesService } from './devices.service';
-import { DataSource } from 'typeorm';
-import { User } from '../entities/user.entity';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-const DEMO_EMAIL = 'demo@aube.app';
-
+@UseGuards(JwtAuthGuard)
 @Controller('devices')
 export class DevicesController {
-  constructor(
-    private readonly svc: DevicesService,
-    private readonly ds: DataSource,
-  ) {}
-
-  // ToDo : JWT
-  // Récupère l’id du user à partir de l’email (temporaire avant JWT)
-  private async getUserIdByEmail(email: string): Promise<string> {
-    const u = await this.ds.getRepository(User).findOne({ where: { email } });
-    if (!u) {
-      throw new Error('Demo user not found — vérifie le seed dans main.ts');
-    }
-    return u.id;
-    // Plus tard, avec le JWT: on ne fera plus ça ici
-  }
+  constructor(private readonly svc: DevicesService) {}
 
   @Get()
-  async list() {
-    const userId = await this.getUserIdByEmail(DEMO_EMAIL);
-    return this.svc.listByUser(userId);
+  list(@Req() req: any) {
+    return this.svc.listByUser(req.user.sub);
   }
 
   @Post()
-  async create(@Body() dto: { name: string }) {
-    const userId = await this.getUserIdByEmail(DEMO_EMAIL);
-    return this.svc.createForUser(userId, dto.name);
+  create(@Req() req: any, @Body() dto: { name: string }) {
+    return this.svc.createForUser(req.user.sub, dto.name);
   }
 
   @Patch(':id/name')
-  async rename(@Param('id') id: string, @Body() dto: { name: string }) {
-    const userId = await this.getUserIdByEmail(DEMO_EMAIL);
-    return this.svc.rename(userId, id, dto.name);
+  rename(@Req() req: any, @Param('id') id: string, @Body() dto: { name: string }) {
+    return this.svc.rename(req.user.sub, id, dto.name);
   }
 
   @Patch(':id/targetLux')
-  async setTargetLux(@Param('id') id: string, @Body() dto: { value: number }) {
-    const userId = await this.getUserIdByEmail(DEMO_EMAIL);
-    return this.svc.setTargetLux(userId, id, dto.value);
+  setTargetLux(@Req() req: any, @Param('id') id: string, @Body() dto: { value: number }) {
+    return this.svc.setTargetLux(req.user.sub, id, dto.value);
   }
 }
