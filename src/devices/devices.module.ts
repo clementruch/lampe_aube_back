@@ -8,15 +8,17 @@ import { DeviceState } from '../entities/device-state.entity';
 import { Telemetry } from '../entities/telemetry.entity';
 import { DeviceStateService } from './device-state.service';
 import { DeviceStateController } from './device-state.controller';
-import { AuthModule } from 'src/auth/auth.module';
+import { DeviceIngestController } from './device-ingest.controller';
+import { DeviceKeyGuard } from '../auth/device-key.guard';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Device, User, DeviceState, Telemetry]),
-    AuthModule,
+  imports: [TypeOrmModule.forFeature([Device, User, DeviceState, Telemetry])],
+  controllers: [
+    DevicesController,
+    DeviceStateController,
+    DeviceIngestController,
   ],
-  controllers: [DevicesController, DeviceStateController],
-  providers: [DevicesService, DeviceStateService],
+  providers: [DevicesService, DeviceStateService, DeviceKeyGuard],
   exports: [DevicesService],
 })
 export class DevicesModule {}

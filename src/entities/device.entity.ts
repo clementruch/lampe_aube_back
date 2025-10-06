@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { User } from './user.entity';
 import { Alarm } from './alarm.entity';
 
@@ -17,4 +23,7 @@ export class Device {
 
   @OneToMany(() => Alarm, (a) => a.device)
   alarms: Alarm[];
+
+  @Column({ unique: true })
+  apiKey: string;
 }

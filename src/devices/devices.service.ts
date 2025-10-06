@@ -9,7 +9,7 @@ export class DevicesService {
   constructor(
     @InjectRepository(Device) private devices: Repository<Device>,
     @InjectRepository(User) private users: Repository<User>,
-  ) {}
+  ) { }
 
   listByUser(userId: string) {
     return this.devices.find({ where: { owner: { id: userId } } });
@@ -33,5 +33,9 @@ export class DevicesService {
     if (!dev || dev.owner.id !== userId) throw new NotFoundException();
     dev.targetLux = value;
     return this.devices.save(dev);
+  }
+
+  async findById(id: string) {
+    return this.devices.findOne({ where: { id } });
   }
 }
