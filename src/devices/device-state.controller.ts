@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { DeviceStateService } from './device-state.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { DevicesService } from './devices.service';
@@ -13,7 +22,7 @@ export class DeviceStateController {
 
   private async assertOwner(req: any, deviceId: string) {
     const list = await this.devicesSvc.listByUser(req.user.sub);
-    if (!list.find(d => d.id === deviceId)) {
+    if (!list.find((d) => d.id === deviceId)) {
       throw new Error('not your device');
     }
   }
@@ -28,20 +37,11 @@ export class DeviceStateController {
   async patchState(
     @Req() req: any,
     @Param('deviceId') deviceId: string,
-    @Body() dto: Partial<{ power: boolean; brightness: number; colorTemp: number }>,
+    @Body()
+    dto: Partial<{ power: boolean; brightness: number; colorTemp: number }>,
   ) {
     await this.assertOwner(req, deviceId);
     return this.svc.patchState(deviceId, dto);
-  }
-
-  @Post('telemetry')
-  async pushTelemetry(
-    @Req() req: any,
-    @Param('deviceId') deviceId: string,
-    @Body() payload: { lux: number; temp: number },
-  ) {
-    await this.assertOwner(req, deviceId);
-    return this.svc.pushTelemetry(deviceId, payload);
   }
 
   @Get('telemetry')

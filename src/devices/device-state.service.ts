@@ -22,7 +22,7 @@ export class DeviceStateService {
       st = await this.states.save(st);
     }
     return st;
-    }
+  }
 
   async getState(deviceId: string) {
     const st = await this.ensureState(deviceId);
@@ -35,13 +35,16 @@ export class DeviceStateService {
       power: st.power,
       brightness: st.brightness,
       colorTemp: st.colorTemp,
-      lux: latest?.lux ?? 20,
-      temp: latest?.temp ?? 22.0,
+      lux: latest?.lux ?? -1,
+      temp: latest?.temp ?? -50,
       updatedAt: st.updatedAt,
     };
   }
 
-  async patchState(deviceId: string, dto: Partial<{ power: boolean; brightness: number; colorTemp: number }>) {
+  async patchState(
+    deviceId: string,
+    dto: Partial<{ power: boolean; brightness: number; colorTemp: number }>,
+  ) {
     const st = await this.ensureState(deviceId);
     if (typeof dto.power === 'boolean') st.power = dto.power;
     if (typeof dto.brightness === 'number') st.brightness = dto.brightness;
@@ -50,10 +53,17 @@ export class DeviceStateService {
     return this.getState(deviceId);
   }
 
-  async pushTelemetry(deviceId: string, payload: { lux: number; temp: number }) {
+  async pushTelemetry(
+    deviceId: string,
+    payload: { lux: number; temp: number },
+  ) {
     const dev = await this.devices.findOne({ where: { id: deviceId } });
     if (!dev) throw new NotFoundException('device not found');
-    const row = this.telemetry.create({ device: dev, lux: payload.lux, temp: payload.temp });
+    const row = this.telemetry.create({
+      device: dev,
+      lux: payload.lux,
+      temp: payload.temp,
+    });
     await this.telemetry.save(row);
     return { ok: true, id: row.id, createdAt: row.createdAt };
   }
