@@ -8,9 +8,13 @@ import { DeviceState } from '../entities/device-state.entity';
 import { Telemetry } from '../entities/telemetry.entity';
 import { DeviceStateService } from './device-state.service';
 import { DeviceStateController } from './device-state.controller';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Device, User, DeviceState, Telemetry])],
+  imports: [
+    TypeOrmModule.forFeature([Device, User, DeviceState, Telemetry]),
+    AuthModule,
+  ],
   controllers: [DevicesController, DeviceStateController],
   providers: [DevicesService, DeviceStateService],
   exports: [DevicesService],

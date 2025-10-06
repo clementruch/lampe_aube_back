@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, Req } from '@nestjs/common';
 import { AlarmsService } from './alarms.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -8,19 +8,24 @@ export class AlarmsController {
   constructor(private readonly svc: AlarmsService) {}
 
   @Get()
-  list(@Param('deviceId') deviceId: string) {
+  list(@Req() req: any, @Param('deviceId') deviceId: string) {
     return this.svc.list(deviceId);
   }
+
   @Post()
-  create(@Param('deviceId') deviceId: string, @Body() dto: any) {
+  create(@Req() req: any, @Param('deviceId') deviceId: string, @Body() dto: {
+    hour: number; minute: number; days: number[]; durationMinutes: number; enabled: boolean
+  }) {
     return this.svc.create(deviceId, dto);
   }
+
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: any) {
+  update(@Req() req: any, @Param('id') id: string, @Body() dto: any) {
     return this.svc.update(id, dto);
   }
+
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Req() req: any, @Param('id') id: string) {
     return this.svc.remove(id);
   }
 }
