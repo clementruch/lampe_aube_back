@@ -53,4 +53,24 @@ export class DeviceStateController {
     await this.assertOwner(req, deviceId);
     return this.svc.listTelemetry(deviceId, limit ? parseInt(limit, 10) : 100);
   }
+
+  @Patch('sunrise')
+  async setSunrise(
+    @Req() req: any,
+    @Param('deviceId') deviceId: string,
+    @Body() body: { at?: string | null; duration?: number },
+  ) {
+    await this.assertOwner(req, deviceId);
+
+    // Cas 1 : annuler la planif
+    if (!body || !body.at) {
+      await this.svc.clearScheduledSunrise(deviceId);
+      return { ok: true, cleared: true };
+    }
+
+    // Cas 2 : planifier une aube
+    const at = new Date(body.at);
+    const duration = body.duration ?? 15;
+    return this.svc.scheduleSunrise(deviceId, at, duration);
+  }
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Device } from '../entities/device.entity';
@@ -38,6 +42,8 @@ export class DeviceStateService {
       lux: latest?.lux ?? -1,
       temp: latest?.temp ?? -50,
       updatedAt: st.updatedAt,
+      sunriseAt: st.sunriseAt,
+      sunriseDuration: st.sunriseDuration,
     };
   }
 
@@ -51,6 +57,26 @@ export class DeviceStateService {
     if (typeof dto.colorTemp === 'number') st.colorTemp = dto.colorTemp;
     await this.states.save(st);
     return this.getState(deviceId);
+  }
+
+  async scheduleSunrise(deviceId: string, at: Date, duration: number) {
+    const st = await this.ensureState(deviceId);
+    if (isNaN(at.getTime())) throw new BadRequestException('invalid date');
+    st.sunriseAt = at;
+    st.sunriseDuration = Math.max(1, Math.min(180, duration | 0));
+    await this.states.save(st);
+    return { ok: true };
+  }
+
+  async clearScheduledSunrise(deviceId: string) {
+    const st = await this.states.findOne({
+      where: { device: { id: deviceId } },
+    });
+    if (!st) throw new NotFoundException('device state not found');
+    st.sunriseAt = null;
+    st.sunriseDuration = null;
+    await this.states.save(st);
+    return st;
   }
 
   async pushTelemetry(

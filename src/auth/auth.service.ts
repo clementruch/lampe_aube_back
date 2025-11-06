@@ -5,12 +5,18 @@ import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private users: UsersService, private jwt: JwtService) {}
+  constructor(
+    private users: UsersService,
+    private jwt: JwtService,
+  ) {}
 
   async signup(email: string, password: string) {
     const hash = await bcrypt.hash(password, 10);
     const user = await this.users.create(email, hash);
-    const access_token = await this.jwt.signAsync({ sub: user.id, email: user.email });
+    const access_token = await this.jwt.signAsync({
+      sub: user.id,
+      email: user.email,
+    });
     return { access_token };
   }
 
@@ -19,7 +25,10 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Invalid credentials');
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) throw new UnauthorizedException('Invalid credentials');
-    const access_token = await this.jwt.signAsync({ sub: user.id, email: user.email });
+    const access_token = await this.jwt.signAsync({
+      sub: user.id,
+      email: user.email,
+    });
     return { access_token };
   }
 }

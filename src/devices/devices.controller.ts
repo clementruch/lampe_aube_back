@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Patch, Post, Param, UseGuards, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Param,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { DevicesService } from './devices.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -18,12 +27,20 @@ export class DevicesController {
   }
 
   @Patch(':id/name')
-  rename(@Req() req: any, @Param('id') id: string, @Body() dto: { name: string }) {
+  rename(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: { name: string },
+  ) {
     return this.svc.rename(req.user.sub, id, dto.name);
   }
 
   @Patch(':id/targetLux')
-  setTargetLux(@Req() req: any, @Param('id') id: string, @Body() dto: { value: number }) {
+  setTargetLux(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: { value: number },
+  ) {
     return this.svc.setTargetLux(req.user.sub, id, dto.value);
   }
 }

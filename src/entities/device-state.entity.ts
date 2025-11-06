@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Device } from './device.entity';
 
 @Entity('device_states')
@@ -10,8 +17,13 @@ export class DeviceState {
   device: Device;
 
   @Column({ default: false }) power: boolean;
-  @Column('float', { default: 0.4 }) brightness: number;   // 0..1
-  @Column('float', { default: 3200 }) colorTemp: number;   // K
+  @Column('float', { default: 0.4 }) brightness: number; // 0..1
+  @Column('float', { default: 3200 }) colorTemp: number; // K
+
+  @Column({ type: 'datetime', nullable: true })
+  sunriseAt: Date | null;
+  @Column('float', { nullable: true })
+  sunriseDuration: number | null;
 
   @UpdateDateColumn() updatedAt: Date;
 }
