@@ -1,16 +1,32 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  JoinColumn,
+} from 'typeorm';
 import { Device } from './device.entity';
 
 @Entity('telemetry')
 export class Telemetry {
-  @PrimaryGeneratedColumn('uuid') id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Index()
-  @ManyToOne(() => Device, { onDelete: 'CASCADE', eager: false })
+  @ManyToOne(() => Device, (d) => d.telemetry, {
+    onDelete: 'CASCADE',
+    eager: false,
+    nullable: false,
+  })
+  @JoinColumn({ name: 'device_id' })
   device: Device;
 
-  @Column('float') lux: number;
-  @Column('float') temp: number;
+  @Column('float', { nullable: true })
+  lux: number | null;
 
-  @CreateDateColumn() createdAt: Date;
+  @Column('float', { nullable: true })
+  temp: number | null;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

@@ -101,4 +101,20 @@ export class DeviceStateService {
       take: Math.min(limit, 1000),
     });
   }
+
+  async addTelemetry(
+    deviceId: string,
+    data: { lux: number | null; temp: number | null },
+  ) {
+    const device = await this.devices.findOne({ where: { id: deviceId } });
+    if (!device) throw new NotFoundException('device not found');
+
+    const t = this.telemetry.create({
+      device: { id: device.id } as any,
+      lux: data.lux ?? null,
+      temp: data.temp ?? null,
+    });
+    await this.telemetry.save(t);
+    return t;
+  }
 }

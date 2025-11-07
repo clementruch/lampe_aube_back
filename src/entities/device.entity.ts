@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Alarm } from './alarm.entity';
+import { Telemetry } from './telemetry.entity';
 
 @Entity('devices')
 export class Device {
@@ -23,6 +24,9 @@ export class Device {
 
   @OneToMany(() => Alarm, (a) => a.device)
   alarms: Alarm[];
+
+  @OneToMany(() => Telemetry, (t) => t.device, { cascade: false })
+  telemetry?: Telemetry[];
 
   @Column({ unique: true })
   apiKey: string;

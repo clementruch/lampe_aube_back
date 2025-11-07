@@ -1,19 +1,29 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { DevicesService } from '../devices/devices.service';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Device } from '../entities/device.entity';
 
 @Injectable()
 export class DeviceKeyGuard implements CanActivate {
-  constructor(private readonly devices: DevicesService) {}
+  constructor(
+    @InjectRepository(Device) private readonly devices: Repository<Device>,
+  ) {}
 
-  async canActivate(ctx: ExecutionContext) {
+  async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req = ctx.switchToHttp().getRequest();
-    const key = req.headers['x-device-key'] as string | undefined;
-    const deviceId = req.params.deviceId as string | undefined;
-    if (!key || !deviceId) throw new UnauthorizedException('Missing device key');
+    const deviceId: string = req.params.deviceId;
+    const key = req.header('x-device-key') || req.header('X-Device-Key');
+    if (!deviceId || !key) throw new UnauthorizedException('Missing device key');
 
-    const dev = await this.devices.findById(deviceId);
-    if (!dev || dev.apiKey !== key) throw new UnauthorizedException('Bad device key');
-
+    const dev = await this.devices.findOne({ where: { id: deviceId } });
+    if (!dev || !dev.apiKey || dev.apiKey !== key) {
+      throw new UnauthorizedException('Invalid device key');
+    }
     req.device = dev;
     return true;
   }
