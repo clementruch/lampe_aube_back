@@ -67,25 +67,62 @@ export class DeviceStateController {
     const st = await this.svc.getState(deviceId);
 
     const deviceAlarms = await this.alarms.find({
-      where: { device: { id: deviceId } },
+      where: { device: { id: deviceId }, enabled: true, sunrise: true },
       order: { hour: 'ASC', minute: 'ASC' },
     });
 
-    let next: { when: Date | null; dur: number } = { when: null, dur: 0 };
+    const now = new Date();
+    let nextStart: Date | null = null;
+    let nextTrigger: Date | null = null;
+    let nextDurMin = 0;
+
     for (const a of deviceAlarms) {
-      const when = this.computeNextOccurrence(a);
-      if (!when) continue;
-      if (!next.when || when.getTime() < next.when.getTime()) {
-        next = { when, dur: a.durationMinutes ?? 15 };
+      const trigger = this.computeNextOccurrence(a);
+      if (!trigger) continue;
+
+      const durMin = a.durationMinutes ?? 15;
+      const start = new Date(trigger.getTime() - durMin * 60_000);
+
+      if (!nextStart || start.getTime() < nextStart.getTime()) {
+        nextStart = start;
+        nextTrigger = trigger;
+        nextDurMin = durMin;
       }
     }
+
+    if (nextStart && nextTrigger && now >= nextStart && now <= nextTrigger) {
+      const toPatch: Partial<{ power: boolean; brightness: number }> = {};
+      if (!st.power) toPatch.power = true;
+      if (st.brightness < 0.999) toPatch.brightness = 1.0;
+
+      if (Object.keys(toPatch).length) {
+        const updated = await this.svc.patchState(deviceId, toPatch);
+        st.power = updated.power;
+        st.brightness = updated.brightness;
+      }
+    }
+
+    const sunriseAtEpoch = nextStart
+      ? Math.floor(nextStart.getTime() / 1000)
+      : 0;
+    const sunriseDurationSec = nextDurMin * 60;
+
+    console.log('[desired]', {
+      nextStart,
+      nextDurMin,
+      sunriseAtEpoch,
+      sunriseDurationSec,
+    });
 
     return {
       power: st.power,
       brightness: st.brightness,
       colorTemp: st.colorTemp,
-      sunriseAt: next.when ? next.when.toISOString() : null, // ISO UTC
-      sunriseDuration: next.dur, // minutes
+      sunriseAtEpoch,
+      sunriseDurationSec,
+
+      sunriseAt: nextStart ? nextStart.toISOString() : null,
+      sunriseDuration: nextDurMin,
     };
   }
 
@@ -103,7 +140,7 @@ export class DeviceStateController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('desired')
+  @Get('desired-app')
   async desiredForApp(@Req() req: any, @Param('deviceId') deviceId: string) {
     await this.assertOwner(req, deviceId);
     const st = await this.svc.getState(deviceId);
